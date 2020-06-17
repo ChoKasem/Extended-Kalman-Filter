@@ -11,6 +11,14 @@ The goals / steps of this project are the following:
 * Analyze the accuracy of the Kalman Filter
 * Summarize the results with a written report
 
+[//]: # (Image References)
+
+[Result1]: ./output_images/Result1.png "Result1"
+[Result2]: ./output_images/Result2.png "Result2"
+[Laser Only]: ./output_images/Laser_only.png "Laser Only"
+[Radar Only]: ./output_images/Radar_only.png "Radar Only"
+
+
 ## 1. Setup
 
 ### 1. UWebSocketIO and Simulation
@@ -40,3 +48,34 @@ Download the simulation from this repository: https://github.com/udacity/self-dr
 
 ## 2. Result
 
+### 1. Dataset 1 and 2
+
+![Result1][Result1]
+
+The predicted position of the car is shown by the green dot in the image. The Root Mean Square Error (RMSE) of X, Y, VX, VY variable are around 0.0973, 0.0855, 0.4513, and 0.4399, respectively.
+
+For second data set, the result is as shown below:
+
+![Result2][Result2]
+
+### 2. Comparing Accuracy of Laser and Radar
+
+Here I want to show the difference between using only Laser data to update our state and using only Radar data. Both results are shown below:
+
+![Laser][Laser Only]
+
+![Radar][Radar Only]
+
+As you can see, using only Laser data have lower RMSE which mean it's more accurate than using only Radar data. However, both data are still valuable and will give us even better accuracy than using just one of them alone when we perform sensor fusion.
+
+## 3. Discussion
+
+### 1. Problem
+
+Setting up required some work as it depends on specific OS that you are using. Dealing with Radar data is also a little challenging since it's non-linear and we have to ensure the angle is within our specify range or the error with be incorrect. One trick when coding the Kalman and Extended Kalman Filter is to match the dimension of the variable which will ensure they are correct.
+
+### 2. Further Recommendation
+
+The code currently cannot keep running and then switch to second dataset because of how the main() function is structure and how it only initialize once but never reinitialize when we restart. This problem, if solve, will allow us to keep the program running and change dataset without having to restart the `./ExtendedKF` command.
+
+Moreover, we could try implementing Unsceneted Kalman Filter to see the difference and observe which one is more accurate.
