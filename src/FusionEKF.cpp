@@ -41,23 +41,13 @@ FusionEKF::FusionEKF() {
   H_laser_ << 1, 0, 0, 0,
               0, 1, 0, 0;
 
-  Hj_ << 1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 0, 0;
+  // Hj_ << 1, 0, 0, 0,
+  //   0, 1, 0, 0,
+  //   0, 0, 0, 0;
 
-  ekf_.P_ = MatrixXd(4,4);
-  ekf_.P_ << 1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1000, 0,
-            0, 0, 0, 1000;
-
-  ekf_.R_ = MatrixXd(2,4);
-  ekf_.R_ << 0.0225, 0,
-            0, 0,0225;
-
-  ekf_.H_ = MatrixXd(2, 4);
-  ekf_.H_ << 1, 0, 0, 0,
-            0, 1, 0, 0;
+  // ekf_.H_ = MatrixXd(2, 4);
+  // ekf_.H_ << 1, 0, 0, 0,
+  //           0, 1, 0, 0;
 
   ekf_.F_ = MatrixXd(4,4);
   ekf_.F_ << 1, 0, 1, 0,
@@ -65,11 +55,11 @@ FusionEKF::FusionEKF() {
              0, 0, 1, 0,
              0, 0, 0, 1;
 
-  ekf_.Q_ = MatrixXd(4,4);
-  ekf_.Q_ << 1, 0, 0, 0,
-             0, 1, 0, 0,
-             0, 0, 1, 0,
-             0, 0, 0, 1;
+  // ekf_.Q_ = MatrixXd(4,4);
+  // ekf_.Q_ << 1, 0, 0, 0,
+  //            0, 1, 0, 0,
+  //            0, 0, 1, 0,
+  //            0, 0, 0, 1;
 
 }
 
@@ -90,7 +80,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      */
 
     // first measurement
-    cout << "EKF: " << endl;
+    cout << "EKF Hello: " << endl;
+    cout << "Fuck this" << endl;
     ekf_.x_ = VectorXd(4);
     ekf_.x_ << 1, 1, 1, 1;
     
@@ -98,22 +89,44 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       // TODO: Convert radar from polar to cartesian coordinates 
       //         and initialize state.
+      cout << "Initializing Radar" << endl;
       
-      float px = measurement_pack.raw_measurements_[0] * math.cos(measurement_pack.raw_measurements_[1]);
-      float py = measurement_pack.raw_measurements_[0] * math.sin(measurement_pack.raw_measurements_[1]) * -1;
-      float vx = measurement_pack.raw_measurements_[2] * math.cos(measurement_pack.raw_measurements_[1]);
-      float vy = measurement_pack.raw_measurements_[2] * math.sin(measurement_pack.raw_measurements_[1]) * -1;
+      float rho = measurement_pack.raw_measurements_[0];
+      float theta = measurement_pack.raw_measurements_[1];
+      float rho_dot = measurement_pack.raw_measurements_[2];
 
+      float px = cos(theta) * rho;
+      float py = sin(theta) * rho;
+      float vx = cos(theta) * rho_dot;
+      float vy = sin(theta) * rho_dot;
+
+      ekf_.x_ <<  px,
+                  py,
+                  vx,
+                  vy;
+
+      ekf_.P_ = MatrixXd(4,4);
+      ekf_.P_ << 1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1;
 
       previous_timestamp_ = measurement_pack.timestamp_;
 
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       // TODO: Initialize state.
+      cout << "Initializing Laser" << endl;
       ekf_.x_ << measurement_pack.raw_measurements_[0], 
               measurement_pack.raw_measurements_[1], 
               0, 
               0;
+
+      ekf_.P_ = MatrixXd(4,4);
+      ekf_.P_ << 1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1000, 0,
+                0, 0, 0, 1000;
 
       previous_timestamp_ = measurement_pack.timestamp_;
 
@@ -134,6 +147,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    * TODO: Update the process noise covariance matrix.
    * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
+  cout << "Predicting" << endl;
 
   float noise_ax = 9;
   float noise_ay = 9;
@@ -170,20 +184,26 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // TODO: Radar updates
-    VectorXd measurement(4);
-    float px = measurement_pack.raw_measurements_[0] * math.cos(measurement_pack.raw_measurements_[1]);
-    float py = measurement_pack.raw_measurements_[0] * math.sin(measurement_pack.raw_measurements_[1]) * -1;
-    float vx = measurement_pack.raw_measurements_[2] * math.cos(measurement_pack.raw_measurements_[1]);
-    float vy = measurement_pack.raw_measurements_[2] * math.sin(measurement_pack.raw_measurements_[1]) * -1;
-    measurement << px, py, vx, vy;
-    ekf_.UpdateEKF(measurement);
+    // Tools tools;
+    // Hj_ = tools.CalculateJacobian(ekf_.x_);
+    // ekf_.H_ = Hj_;
+    std::cout << "Updating Radar" << std::endl;
+    ekf_.R_ = R_radar_;
 
-
+    // VectorXd measurement(4);
+    // float px = measurement_pack.raw_measurements_[0] * math.cos(measurement_pack.raw_measurements_[1]);
+    // float py = measurement_pack.raw_measurements_[0] * math.sin(measurement_pack.raw_measurements_[1]) * -1;
+    // float vx = measurement_pack.raw_measurements_[2] * math.cos(measurement_pack.raw_measurements_[1]);
+    // float vy = measurement_pack.raw_measurements_[2] * math.sin(measurement_pack.raw_measurements_[1]) * -1;
+    // measurement << px, py, vx, vy;
+    ekf_.UpdateEKF(measurement_pack.raw_measurements_);
 
   } else {
     // TODO: Laser updates
-    ekf_.UpdateEKF(measurement_pack.raw_measurements_);
-
+    std::cout << "Updating Lazer" << std::endl;
+    ekf_.H_ = H_laser_;
+    ekf_.R_ = R_laser_;
+    ekf_.Update(measurement_pack.raw_measurements_);
   }
 
   // print the output
